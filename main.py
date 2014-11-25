@@ -41,7 +41,7 @@ def main(num_iter, size, theta, show_freq):
                 prob_pos = np.exp(sum)
                 sample = rng.binomial(1, prob_pos / (prob_neg + prob_pos))
                 vars[i, j] = (sample * 2) - 1
-        if it % show_freq == 0:
+        if it % show_freq == show_freq - 1:
             ans += [vars.copy()]
 
     return ans

@@ -32,11 +32,13 @@
 \section{}
 \section{Gibbs sampling}
 \subsection{(a) Conditional probability}
-\begin{equation}
-\mathrm{Pr}\left[x_{i, j} = 1\right] = 
-\mathrm{Pr}\left[x_{i, j} = 1| x_{i - 1, j}, x_{i, j - 1}, x_{i + 1, j}, x_{i, j + 1}\right] =
-\exp(\theta x_{i, j} x_{i - 1, j} + \theta x_{i, j} x_{i, j - 1} + \theta x_{i, j} x_{i + 1, j} + \theta x_{i, j} x_{i, j + 1})
-\end{equation}
+
+\begin{align}
+\mathrm{Pr}\left[x_{i, j} = 1\right] \
+= \mathrm{Pr}\left[x_{i, j} = 1| x_{i - 1, j}, x_{i, j - 1}, x_{i + 1, j}, x_{i, j + 1}\right] \
+= \exp(\theta x_{i, j} x_{i - 1, j} + \theta x_{i, j} x_{i, j - 1} + \theta x_{i, j} x_{i + 1, j} + \theta x_{i, j} x_{i, j + 1})
+\end{align}
+
 \subsection{Gibbs sampling}
 The code for Gibbs sampling in Ising model:
 \begin{lstlisting}[language=Python]
