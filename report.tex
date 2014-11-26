@@ -4,7 +4,7 @@
 \usepackage{graphicx}
 \usepackage{listings}
 \usepackage[usenames,dvipsnames]{color}
-\usepackage{dsfont}
+\usepackage{amsmath}
 
 \definecolor{gray}{cmyk}{0,0,0,0.50}
 \definecolor{Brown}{cmyk}{0,0.81,1,0.60}
@@ -40,7 +40,7 @@ showtabs=false,                         % Dont make tabls visible
 
 \section{Induced graphs}
 
-Let's proove, that if there is a path described in the task, then there is a fill edge $X$ -- $Y$.
+Let's prove, that if there is a path described in the task, then there is a fill edge $X$ -- $Y$.
 If we run the variable elimination algorithm on the graph $H$ and pause it after the algorithm would
 eliminate all $Z_i$ but wouldn't eliminate $X$ and $Y$. It is possible because all $Z_i$ go before
 $X$ and $Y$. At this point we should have a $\tau$ which depends on $X$ and $Y$ which "contains" all
@@ -53,7 +53,7 @@ a fill edge. Let's suppose, that $Z_{i_1}$ is a variable which was eliminated wh
 this variable was eliminated before $X$ and $Y$.
 Consider two pairs of variables ($X$, $Z_{i_1}$) and ($Z_{i_1}$, $Y$). There are only two possibilities for
 each pair ($A$, $B$): either $A$ -- $B$ is a fill edge or $A$ -- $B$ is an edge in graph $H$, otherwise
-$X$ -- $Y$ is not a fill edge. We can apply the same argument for each pair recurcevely. Then we reorder 
+$X$ -- $Y$ is not a fill edge. We can apply the same argument for each pair recursively. Then we reorder 
 $Z_{i_k}$ from $X$ to $Y$ and this is a path we would like to find: every $Z_{i_k} \prec X, Y$.
 
 \section{HMM}
@@ -62,7 +62,7 @@ $Z_{i_k}$ from $X$ to $Y$ and this is a path we would like to find: every $Z_{i_
 
 \begin{align*}
 \delta_{y_t \rightarrow x_t}(x_t) &=& \sum_{y_t} \mathrm{Pr}\left[ y_t | x_t \right] 
-\mathds{1} \left[y_t = \hat{y}_t\right] \\
+\mathcal{1} \left[y_t = \hat{y}_t\right] \\
 \delta_{x_{t - 1} \rightarrow x_t}(x_t) &=& \sum_{x_{t - 1}} \mathrm{Pr}\left[ x_t | x_{t - 1} \right] 
 \delta_{y_{t-1} \rightarrow x_{t - 1}}(x_{t-1}) \delta_{x_{t - 2} \rightarrow x_{t - 1}}(x_{t - 1}) \\
 \delta_{x_{t + 1} \rightarrow x_{t}}(x_t) &=& \sum_{x_{t + 1}} \mathrm{Pr}\left[ x_{t + 1} | x_t \right]
@@ -128,7 +128,7 @@ for i in xrange(0, n):
     message_x_fort[i, :] = (prob_x_x[:, 1] * message_y_x[i, 1] * message_x_fort[i - 1, 1] +
                             prob_x_x[:, 0] * message_y_x[i, 0] * message_x_fort[i - 1, 0])
 
-# Normalisation
+# Normalization
 message_y_x /= np.sum(message_y_x, axis=1).reshape((-1, 1))
 message_x_fort /= np.sum(message_x_fort, axis=1).reshape((-1, 1))
 message_x_back /= np.sum(message_x_back, axis=1).reshape((-1, 1))
@@ -138,7 +138,7 @@ message_x_y /= np.sum(message_x_y, axis=1).reshape((-1, 1))
 \begin{figure}
     \begin{center}
         \includegraphics[width=6cm]{prob_07.eps}
-        \caption{Probablities of having $x = "good"$ with $q=0.7$}
+        \caption{Probabilities of having $x = "good"$ with $q=0.7$}
         \label{fig:hmm07}
     \end{center}
 \end{figure}
@@ -146,7 +146,7 @@ message_x_y /= np.sum(message_x_y, axis=1).reshape((-1, 1))
 \begin{figure}
     \begin{center}
         \includegraphics[width=6cm]{prob_09.eps}
-        \caption{Probablities of having $x = "good"$ with $q=0.9$}
+        \caption{Probabilities of having $x = "good"$ with $q=0.9$}
         \label{fig:hmm09}
     \end{center}
 \end{figure}
@@ -160,7 +160,29 @@ The results are shown on Fig.~\ref{fig:hmm09}. The probability to have a good ec
 during the week $39$ is $0.9551$. We can see, that the data have more impact on the results
 with $q=0.9$. 
 
-\section{}
+\section{Variational inference}
+After noticing which sets are independent and which are not we get
+\begin{align*}
+    \psi_{22, 32}(x_{22}, x_{32}) \propto \exp\biggl[  & \sum_{j=1}^5 \mathrm{E}_{X_{6j}, X_{6, j+1} \sim q} \left[ \theta X_{6j} X_{6, j+1} | x_{22}, x_{32} \right] \\
+    & + \sum_{i = 2}^{5} \sum_{j = 2,\ j \vdots 2}^{6} \mathrm{E}_{X_{i, j}, X_{i + 1, j} \sim q} \left[ \theta X_{i, j} X_{i+1, j} | x_{22}, x_{32} \right] \\
+    & + \sum_{i = 2}^5 \sum_{j=1}^5 \mathrm{E}_{X_{i, j} X_{i, j + 1} \sim q} \left[ \theta X_{i, j} X_{i, j + 1} | x_{22}, x_{32}\right] \\
+    & + \sum_{j = 1}^6 \mathrm{E}_{X_{k(j), j}, X_{k(j) + 1, j}} \left[ \theta X_{k(j), j} X_{k(j) + 1, j} | x_{22}, x_{32}\right] \\
+    & - \sum_{j=1}^5 \mathrm{E}_{X_{6j}, X_{6, j+1} \sim q} \left[ \ln \psi_{6, j, 6, j+1}(X_{6j}, X_{6, j+1}) | x_{22}, x_{32} \right] \\
+    & - \sum_{i = 2}^{5} \sum_{j = 2,\ j \vdots 2}^{6} \mathrm{E}_{X_{i, j}, X_{i + 1, j} \sim q} \left[ \ln \psi_{i, j, i + 1, j}(X_{i, j}, X_{i + 1, j})  | x_{22}, x_{32} \right] \\
+    & + \mathrm{E}_{X_{2, 2}, X_{3, 2} \sim q} \left[ \ln \psi_{22, 32}(X_{2, 2}, X_{3, 2})  | x_{22}, x_{32} \right]  \biggr]
+\end{align*}
+where $k(j) = 5$ when $j \vdots 2$ and $k(j) = 1$ in other cases. I just summed unnecessary term in the last line, it is possible to implement this
+update excluding it from the preceding line. And another update
+\begin{align*}
+    \psi_{61, 62}(x_{61}, x_{62}) \propto \exp\biggl[  & \sum_{j=1}^5 \mathrm{E}_{X_{6j}, X_{6, j+1} \sim q} \left[ \theta X_{6j} X_{6, j+1} | x_{61}, x_{62} \right] \\
+    & + \sum_{i = 2}^{5} \sum_{j = 2,\ j \vdots 2}^{6} \mathrm{E}_{X_{i, j}, X_{i + 1, j} \sim q} \left[ \theta X_{i, j} X_{i+1, j} | x_{61}, x_{62} \right] \\
+    & + \sum_{i = 2}^5 \sum_{j=1}^5 \mathrm{E}_{X_{i, j} X_{i, j + 1} \sim q} \left[ \theta X_{i, j} X_{i, j + 1} | x_{61}, x_{62}\right] \\
+    & + \sum_{j = 1}^6 \mathrm{E}_{X_{k(j), j}, X_{k(j) + 1, j}} \left[ \theta X_{k(j), j} X_{k(j) + 1, j} | x_{61}, x_{62}\right] \\
+    & - \sum_{j=1}^5 \mathrm{E}_{X_{6j}, X_{6, j+1} \sim q} \left[ \ln \psi_{6, j, 6, j+1}(X_{6j}, X_{6, j+1}) | x_{61}, x_{62} \right] \\
+    & - \sum_{i = 2}^{5} \sum_{j = 2,\ j \vdots 2}^{6} \mathrm{E}_{X_{i, j}, X_{i + 1, j} \sim q} \left[ \ln \psi_{i, j, i + 1, j}(X_{i, j}, X_{i + 1, j})  | x_{61}, x_{62} \right] \\
+    & + \mathrm{E}_{X_{61}, X_{62} \sim q} \left[ \ln \psi_{61, 62}(X_{2, 2}, X_{3, 2})  | x_{61}, x_{62} \right]  \biggr]
+\end{align*}
+
 \section{Gibbs sampling}
 \subsection{(a) Conditional probability}
 
@@ -209,7 +231,7 @@ where $\mathrm{Pa}(x)$ is the only parent of $x$, $\Phi(x)$ and $\Phi(x, Pa(x))$
 associated with $x$ and the parent of $x$. $Z = \sum \Phi(x) \Phi(x, Pa(x))$ is the normalization constant.
 
 Since we can describe the model in terms of Bayesian net, we can sample from it using 
-ancestral sampling. More presisely, we can sample from the root $x_1$ according to probability
+ancestral sampling. More precisely, we can sample from the root $x_1$ according to probability
 $\mathrm{Pr}[x_1]$, then sample all the children of $x_1$ using conditional probabilities defined 
 in Eq.~\ref{eq:fact}. Then we recursively repeat the procedure to the next layer of children.
 
@@ -266,7 +288,7 @@ block Gibbs samples seems to mix better.
 \begin{figure}
     \begin{center}
         \includegraphics[width=15cm,height=6cm]{sample_block.eps}
-        \caption{Block Gibbs sampling results using acestral sampling for sampling from each block. 
+        \caption{Block Gibbs sampling results using ancestral sampling for sampling from each block. 
         Samples were drawn every $100$ iterations.}
         \label{fig:block_gibbs}
     \end{center}
