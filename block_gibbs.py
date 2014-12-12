@@ -96,8 +96,7 @@ def prec(i, j, size):
     return out
 
 
-
-def main(size, theta, num_iter, vis_step):
+def sample(size, theta, num_iter, vis_step):
     rng = random.RandomState(123)
     vars = rng.binomial(1, 0.5, (size, size)) * 2. - 1.
     probs = np.zeros((size, size))
@@ -156,34 +155,59 @@ def main(size, theta, num_iter, vis_step):
         sample = rng.binomial(1, prob[1])
         vars[i, j] = (sample * 2) - 1
 
-
-
     ret = []
-    plt.figure(1, figsize=(15, 6))
     for i in xrange(num_iter):
         do_ancestral_sampling(vars, part=0, theta=theta)
         do_ancestral_sampling(vars, part=1, theta=theta)
 
         if i % vis_step == vis_step - 1:
-            plt.subplot(250 + (i / vis_step))
-    #        ret += [vars.copy()]
-            #plt.figure(1)
-            plt.imshow(vars.copy(), interpolation='none', cmap=cm.Greys_r)
-    plt.savefig("sample_block45.eps")
-    plt.show()
-    #        plt.figure(1)
-    #        plt.subplot(121)
-    #        plt.imshow(probs, interpolation='none')
-    #        plt.subplot(122)
-    #        plt.imshow(vars, interpolation='none')
-    #        plt.show()
+            ret += [vars.copy()]
+    return ret
 
-#for image in ret:
-#    plt.imshow(image, interpolation='none')
-#    plt.show()
+
+def iterate_grid(size):
+    for j in xrange(size):
+        for i in xrange(size):
+            if i < size - 1:
+                yield (i, j), (i + 1, j)
+            if j < size - 1:
+                yield (i, j), (i, j + 1)
+
+
+def sum_grid(data):
+    sum = 0
+    size = data[0].shape[0]
+    for (i, j), (ii, jj) in iterate_grid(size):
+        for matr in data:
+            sum += matr[i, j] * matr[ii, jj]
+    return sum
+
+
+def compute_grad(data, theta, sample_iter=100, sample_freq=10):
+    size = data[0].shape[0]
+    # compute sum
+    sum = sum_grid(data) / len(data)
+
+    samples = sample(num_iter=sample_iter, size=size, theta=theta,
+                     vis_step=sample_freq)
+
+    partition = sum_grid(samples) / len(samples)
+    return sum + partition
+
+
+def infer(data, start_theta, grad_step, sample_iter=100, sample_freq=10):
+    theta = start_theta
+    while True:
+        grad = compute_grad(data, theta, sample_iter=sample_iter,
+                            sample_freq=sample_freq)
+        theta -= grad_step * grad
+        yield theta
+
 
 if __name__ == "__main__":
-    main(size=30,
+    sample(size=30,
          theta=0.25,
          num_iter=1000,
          vis_step=100)
+    plt.savefig("sample_block45.eps")
+    plt.show()

@@ -21,7 +21,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def main(num_iter, size, theta, show_freq):
+def sample(num_iter, size, theta, show_freq):
     rng = np.random.RandomState(123)
     vars = (rng.binomial(1, 0.5, size=(size, size)) * 2) - 1
     ans = []
@@ -46,7 +46,8 @@ def main(num_iter, size, theta, show_freq):
 
     return ans
 
+
 if __name__ == "__main__":
     args = parse_args()
-    main(args.iter, args.size, args.theta, args.show_freq)
+    sample(args.iter, args.size, args.theta, args.show_freq)
 
