@@ -192,15 +192,37 @@ def compute_grad(data, theta, sample_iter=100, sample_freq=10):
                      vis_step=sample_freq)
 
     partition = sum_grid(samples) / len(samples)
-    return sum + partition
+    return sum - partition
 
 
 def infer(data, start_theta, grad_step, sample_iter=100, sample_freq=10):
     theta = start_theta
     while True:
+        grad_step /= 1.03
         grad = compute_grad(data, theta, sample_iter=sample_iter,
                             sample_freq=sample_freq)
-        theta -= grad_step * grad
+        theta += grad_step * grad
+        yield theta
+
+
+def batched(data, batch_size):
+    batch = []
+    for i, data_point in enumerate(data):
+        batch += [data_point]
+        if i % batch_size == batch_size - 1:
+            yield np.array(batch)
+            batch = []
+
+
+def batch_infer(data, start_theta, grad_step, sample_iter=100, sample_freq=10,
+                batch_size=10):
+    theta = start_theta
+    while True:
+        grad_step /= 1.03
+        for data_batch in batched(data, batch_size):
+            grad = compute_grad(data_batch, theta, sample_iter=sample_iter,
+                                sample_freq=sample_freq)
+            theta += grad_step * grad
         yield theta
 
 
